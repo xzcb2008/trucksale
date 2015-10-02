@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>聊天室測試</title>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src *; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+  <link rel="stylesheet" href="//ezoui.com/css/normalize.css">
+  <link rel="stylesheet" href="//ezoui.com/gk/lib/jquery.mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+  <!-- Export CSS  -->
+  <style>
+    html{
+  height:100%;
+}
+body{
+  background:url('http://x1.zhuti.com/down/2013/2/19-w/blsdsz1-1.jpg');
+  background-size:cover;
+  background-attachment: fixed;
+  height:100%;
+}
+div[data-role="page"],.ui-content{
+  background:rgba(0,0,0,0);
+}
+#footer{
+  box-sizing:border-box;
+  padding:0 10px;
+}
+.name{
+  width:100%;
+  text-align:left;
+  font-size:12px;
+  color:#fff;
+  text-shadow:#000 0 0 5px,#000 0 0 2px;
+  margin:10px 0 10px 10px;
+}
+.me .name{
+  color:#ff5;
+  text-align:right;
+  margin:10px 15px 10px 0;
+}
+.message{
+  text-shadow:none;
+  box-sizing:border-box;
+  width:100%;
+  padding:10px 20px;
+  border-radius:10px;
+  margin-bottom:15px;
+  background:rgba(255,255,255,.6);
+  position:relative;
+  color:#000
+}
+.message::before{
+  content:'';
+  width:0;
+  height:0;
+  position:absolute;
+  bottom:-20px;
+  left:15px;
+  border-width:10px 7px;
+  border-style:solid;
+  border-top-color:rgba(255,255,255,.6);
+  border-left-color:rgba(0,0,0,0);
+  border-right-color:rgba(0,0,0,0);
+  border-bottom-color:rgba(0,0,0,0);
+}
+.me .message{
+  background:rgba(255,255,150,.6);
+}
+.me .message::before{
+  border-top-color:rgba(255,255,150,.6);
+  left:auto;
+  right:15px;
+}
+  </style>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <!-- Uncomment the following to include cordova in your app project -->
+  <!-- <script src="//ezoui.com/platforms/android_or_ios/cordova.js"></script> -->
+  <!-- Export JS  -->
+  <script>
+    (function (document, $) {
+
+      var now = new Date;
+      var genid = "id_gen_" + now.getTime(); // 利用時間作為 id 就不容易重複
+
+      $(document).on('pageinit', '#home', function () {
+        loadJS('https://cdn.firebase.com/js/client/1.1.1/firebase.js', function () {
+
+          var myDataRef = new Firebase('https://b5qw6pt223v.firebaseio-demo.com/');
+
+          $('#messageInput').keypress(function (e) {
+            if (e.keyCode == 13) {
+              var userid = genid;
+              var name = $('#nameInput').val();
+              var text = $('#messageInput').val();
+              myDataRef.push({
+                name: name,
+                text: text,
+                userid: userid // 增加一個 id
+              });
+              $('#messageInput').val('');
+            }
+          });
+          myDataRef.on('child_added', function (snapshot) {
+            var message = snapshot.val();
+            displayChatMessage(message.name, message.text, message.userid);
+          });
+
+          function displayChatMessage(name, text, userid) {
+            $('#messagesDiv').prepend(
+              '<div class="' + userid + '">' +
+              '<div class="message">' + text + '</div>' +
+              '<div class="name">' + name + '</div>' +
+              '</div>'
+            );
+            if (userid == genid) {
+              $('.' + userid).addClass('me'); // id 相同就是自己
+            }
+          };
+
+        });
+      });
+
+
+      function loadJS(src, callback) {
+        var head = document.getElementsByTagName("head")[0],
+          script = document.createElement('script');
+        script.src = src;
+        script.onload = callback;
+        script.onerror = function (e) {
+          alert("failed: " + JSON.stringify(e));
+        };
+        head.appendChild(script);
+        head.removeChild(script);
+      }
+
+    }(document, jQuery));
+  </script>
+</head>
+
+<body>
+  <!-- Page: home  -->
+  <div id="home" data-role="page">
+    <div data-role="header" data-position="fixed" data-theme="b">
+      <h3>聊天室測試</h3> 
+    </div>
+    <div role="main" class="ui-content">
+      <div id="messagesDiv"></div>
+    </div>
+    <div id="footer" data-role="footer" data-position="fixed" data-theme="b">
+      <input type="text" id="nameInput" placeholder="名字或暱稱">
+      <input type="text" id="messageInput" placeholder="訊息">
+    </div>
+  </div>
+</body>
+
+</html>
+
